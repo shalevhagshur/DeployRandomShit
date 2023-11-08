@@ -45,7 +45,7 @@ def myCategories(req):
 def product_list(request):
     products = Product.objects.all()
     serializer = ProductSerializer(products, many=True)  # Serialize the data
-    return render(request, '../Front/index.html', {'products': serializer.data})
+    return render(request, '/Front/index.html', {'products': serializer.data})
 
 
 @api_view(['POST'])
@@ -84,7 +84,7 @@ def login_view(request):
 
     if user is not None:
         login(request, user)
-        return render(request, '../Front/login.html')  # Render the login template
+        return render(request, '/Front/login.html')  # Render the login template
 
     return Response("Invalid credentials", status=status.HTTP_401_UNAUTHORIZED)
 
