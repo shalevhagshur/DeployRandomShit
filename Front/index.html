@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        #display, #Mycart {
+            flex: 1;
+        }
+
+        #display {
+            padding: 10px;
+        }
+
+        #Mycart {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+        }
+
+        .product-item, .cart-item {
+            width: 30%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+        }
+
+        .product-item img, .cart-item img {
+            max-width: 100px;
+        }
+
+        .cart-item ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .cart-item li {
+            margin: 5px 0;
+        }
+
+        .cart-item button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .cart-item button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    hihi
+    <div id="display"></div>
+    <div id="Mycart"></div>
+
+    <script>
+        // Load the cart from local storage, or initialize an empty array if it doesn't exist
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let accessToken = localStorage.getItem('accessToken'); // Get the access token from local storage
+        const MY_SERVER = "http://127.0.0.1:8000/";
+        let res;
+
+        const load_display = async () => {
+            res = await axios.get(MY_SERVER + "/product");
+            display.innerHTML = res.data.map((prod, index) => `
+                <div>
+                    description: ${prod.description}
+                    <img src="${MY_SERVER}${prod.image}">
+                    id: ${prod.id}
+                    price: ${prod.price}
+                    <button onclick="addtocart(${index})">Buy</button>
+                </div>`);
+        }
+
+        function addtocart(index) {
+            const product = res.data[index];
+            const existingProduct = cart.find(item => item.id === product.id);
+
+            if (existingProduct) {
+                existingProduct.amount++;
+            } else {
+                cart.push({ ...product, amount: 1 });
+            }
+
+            // Save the updated cart to local storage
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateMycart();
+        }
+
+        function updateMycart() {
+            const Mycart = document.getElementById("Mycart");
+            Mycart.innerHTML = `
+                <h2>Mycart</h2>
+                <ul>
+                    ${cart.map(item => `
+                        <li>
+                            ID: ${item.id} - Price: ${item.price} - Amount: ${item.amount}
+                            <img src="${MY_SERVER}${item.image}">
+                            <button onclick="decreaseQuantity(${item.id})">-</button>
+                            <button onclick="increaseQuantity(${item.id})">+</button>
+                        </li>`).join('')}
+                </ul>
+                <button onclick="purchase()">Purchase</button>
+                <p>Total: $${calculateTotal().toFixed(2)}</p>
+            `;
+        }
+
+        function decreaseQuantity(itemId) {
+            const existingProduct = cart.find(item => item.id === itemId);
+            if (existingProduct) {
+                if (existingProduct.amount > 1) {
+                    existingProduct.amount--;
+                } else {
+                    cart = cart.filter(item => item.id !== itemId);
+                }
+                localStorage.setItem('cart', JSON.stringify(cart));
+                updateMycart();
+            }
+        }
+
+        function increaseQuantity(itemId) {
+            const existingProduct = cart.find(item => item.id === itemId);
+            if (existingProduct) {
+                existingProduct.amount++;
+                localStorage.setItem('cart', JSON.stringify(cart));
+                updateMycart();
+            }
+        }
+
+        // Function to fetch user information based on the access token
+        async function fetchUserInfo() {
+            if (!accessToken) {
+                return null;
+            }
+
+            try {
+                const response = await axios.get(`${MY_SERVER}user_info/`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+
+                return response.data;
+            } catch (error) {
+                console.error('Failed to fetch user information:', error);
+                return null;
+            }
+        }
+
+        // Function to purchase
+        async function purchase() {
+            const userInfo = await fetchUserInfo();
+            if (!userInfo) {
+                alert('You need to log in to make a purchase.');
+                return;
+            }
+
+            // Create a JSON object with the required order data, including product IDs, category IDs, and username
+            const orderData = cart.map(item => {
+                return {
+                    amount: item.amount,
+                    product: item.id,
+                    price: item.price,
+                    image: item.image,
+                    category: item.category,
+                    username: userInfo.id,
+                };
+            });
+
+            // Make a POST request to your server to create the order
+            axios.post(`${MY_SERVER}create_order/`, orderData, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            })
+            .then(response => {
+                // Purchase was successful, you can handle the response here
+                console.log(response.data);
+            })
+            .catch(error => {
+                // Handle errors, e.g., display an error message
+                console.error('Purchase error:', error);
+            });
+        }
+
+        function calculateTotal() {
+            return cart.reduce((total, item) => total + item.price * item.amount, 0);
+        }
+
+        if (localStorage.getItem('cart')) {
+            cart = JSON.parse(localStorage.getItem('cart'));
+            updateMycart();
+        }
+
+        load_display();
+    </script>
+</body>
+</html>

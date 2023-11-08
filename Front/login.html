@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+    <div id="login-form">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div id="welcome" style="display: none;">
+        <h2>Welcome</h2>
+        <p>You are logged in!</p>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Add a link to index.html -->
+    <a href="index.html">Go to Index Page</a>
+
+    <script>
+        const MY_SERVER = "http://127.0.0.1:8000/";
+
+        // Function to check if the provided username and password are valid
+        async function authenticate(username, password) {
+            try {
+                // Make an HTTP POST request to your 'forlogin' route
+                const response = await fetch(MY_SERVER + 'forlogin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                if (response.ok) {
+                    // Authentication successful
+                    const data = await response.json();
+                    return data.access_token;
+                } else {
+                    // Authentication failed
+                    return null;
+                }
+            } catch (error) {
+                console.error('Authentication error:', error);
+                return null;
+            }
+        }
+
+        // Function to handle login
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Check if the provided credentials are valid
+            const accessToken = await authenticate(username, password);
+
+            if (accessToken) {
+                // Store the access token in local storage
+                localStorage.setItem('accessToken', accessToken);
+
+                // Hide the login form and display the welcome message
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('welcome').style.display = 'block';
+            } else {
+                alert('Invalid credentials. Please try again.');
+            }
+        }
+
+        // Function to handle logout
+        function logout() {
+            // Remove the access token from local storage
+            localStorage.removeItem('accessToken');
+
+            // Hide the welcome message and display the login form
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('welcome').style.display = 'none';
+        }
+
+        // Check if the user is already logged in (access token exists in local storage)
+        const accessToken = localStorage.getItem('accessToken');
+
+        if (accessToken) {
+            // Hide the login form and display the welcome message
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('welcome').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
