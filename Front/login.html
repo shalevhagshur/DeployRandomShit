@@ -23,13 +23,13 @@
     <a href="index.html">Go to Index Page</a>
 
     <script>
-        const MY_SERVER = "https://waga-cwh5.onrender.com/";
+        const MY_SERVER = "https://waga-cwh5.onrender.com";
 
         // Function to check if the provided username and password are valid
         async function authenticate(username, password) {
             try {
                 // Make an HTTP POST request to your 'forlogin' route
-                const response = await fetch(MY_SERVER + 'forlogin', {
+                const response = await fetch(MY_SERVER + '/forlogin', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
