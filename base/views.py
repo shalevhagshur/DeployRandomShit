@@ -15,6 +15,7 @@ from .Serializer import OrdersSerializer
 from rest_framework.views import APIView
 
 
+
 class CreateOrderView(APIView):
     def post(self, request, format=None):
         data = request.data  # The JSON data
@@ -40,11 +41,11 @@ def myCategories(req):
     return Response(all_categories)
 
 
-@api_view(['GET'])  # Decorate with @api_view specifying the HTTP method
+@api_view(['GET'])
 def product_list(request):
     products = Product.objects.all()
     serializer = ProductSerializer(products, many=True)  # Serialize the data
-    return Response(serializer.data) 
+    return render(request, 'product.html', {'products': serializer.data})
     
 
 @api_view(['POST'])
@@ -83,14 +84,9 @@ def login_view(request):
 
     if user is not None:
         login(request, user)
+        return render(request, 'login.html')  # Render the login template
 
-        # Generate a JWT access token using djangorestframework-simplejwt
-        refresh = RefreshToken.for_user(user)
-        access_token = str(refresh.access_token)
-
-        return Response({'access_token': access_token}, status=status.HTTP_200_OK)
-    else:
-        return Response("Invalid credentials", status=status.HTTP_401_UNAUTHORIZED)
+    return Response("Invalid credentials", status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(['POST'])
