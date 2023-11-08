@@ -74,7 +74,7 @@
         // Load the cart from local storage, or initialize an empty array if it doesn't exist
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         let accessToken = localStorage.getItem('accessToken'); // Get the access token from local storage
-        const MY_SERVER = "http://127.0.0.1:8000/";
+        const MY_SERVER = "https://waga-cwh5.onrender.com/";
         let res;
 
         const load_display = async () => {
