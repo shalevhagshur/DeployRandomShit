@@ -45,7 +45,7 @@ def myCategories(req):
 def product_list(request):
     products = Product.objects.all()
     serializer = ProductSerializer(products, many=True)  # Serialize the data
-    return render(request, 'product.html', {'products': serializer.data})
+    return render(request, 'index.html', {'products': serializer.data})
     
 
 @api_view(['POST'])
